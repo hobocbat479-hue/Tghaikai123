@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Hứng Bóng</title>
+    <style>
+        body {
+            background-color: #1e1e2e;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        #gameCanvas {
+            background-color: #2b2b3b;
+            border: 3px solid #89b4fa;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+        .info {
+            margin-bottom: 10px;
+            font-size: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="info">Điểm: <span id="score">0</span></div>
+    <canvas id="gameCanvas" width="400" height="500"></canvas>
+
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+        const scoreDisplay = document.getElementById("score");
+
+        let score = 0;
+        let gameOver = false;
+
+        // Cấu hình thanh hứng
+        const paddle = {
+            width: 80,
+            height: 12,
+            x: canvas.width / 2 - 40,
+            y: canvas.height - 20,
+            speed: 6,
+            dx: 0
+        };
+
+        // Cấu hình quả bóng
+        const ball = {
+            x: canvas.width / 2,
+            y: 30,
+            radius: 10,
+            speedY: 3,
+            speedX: 3
+        };
+
+        // Điều khiển thanh hứng bằng phím mũi tên
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "ArrowRight" || e.key === "Right") paddle.dx = paddle.speed;
+            if (e.key === "ArrowLeft" || e.key === "Left") paddle.dx = -paddle.speed;
+        });
+
+        document.addEventListener("keyup", (e) => {
+            if (e.key === "ArrowRight" || e.key === "Right" || e.key === "ArrowLeft" || e.key === "Left") {
+                paddle.dx = 0;
+            }
+        });
+
+        // Vẽ các thành phần
+        function drawPaddle() {
+            ctx.fillStyle = "#89b4fa";
+            ctx.fillRect(paddle.x, paddle.y, paddle.width, paddle.height);
+        }
+
+        function drawBall() {
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+            ctx.fillStyle = "#f38ba8";
+            ctx.fill();
+            ctx.closePath();
+        }
+
+        // Cập nhật trạng thái game
+        function update() {
+            if (gameOver) return;
+
+            // Di chuyển thanh hứng
+            paddle.x += paddle.dx;
+            if (paddle.x < 0) paddle.x = 0;
+            if (paddle.x + paddle.width > canvas.width) paddle.x = canvas.width - paddle.width;
+
+            // Di chuyển bóng
+            ball.x += ball.speedX;
+            ball.y += ball.speedY;
+
+            // Bật lại khi chạm tường trái/phải
+            if (ball.x + ball.radius > canvas.width || ball.x - ball.radius < 0) {
+                ball.speedX *= -1;
+            }
+
+            // Bật lại khi chạm mép trên
+            if (ball.y - ball.radius < 0) {
+                ball.speedY *= -1;
+            }
+
+            // Xử lý va chạm với thanh hứng
+            if (
+                ball.y + ball.radius >= paddle.y &&
+                ball.x >= paddle.x &&
+                ball.x <= paddle.x + paddle.width
+            ) {
+                ball.speedY = -Math.abs(ball.speedY); // Bật lên
+                score += 10;
+                scoreDisplay.innerText = score;
+
+                // Tăng tốc độ bóng nhẹ sau mỗi lần hứng
+                ball.speedY -= 0.2;
+                ball.speedX += (ball.speedX > 0 ? 0.1 : -0.1);
+            }
+
+            // Thua game khi bóng rơi xuống đáy
+            if (ball.y + ball.radius > canvas.height) {
+                gameOver = true;
+                setTimeout(() => {
+                    alert("Game Over! Điểm của bạn: " + score);
+                    document.location.reload();
+                }, 10);
+            }
+        }
+
+        function render() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawPaddle();
+            drawBall();
+        }
+
+        function gameLoop() {
+            update();
+            render();
+            if (!gameOver) {
+                requestAnimationFrame(gameLoop);
+            }
+        }
+
+        gameLoop();
+    </script>
+</body>
+</html>
+# Tghaikai123
+tao game
